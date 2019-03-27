@@ -1,9 +1,8 @@
-# air-co-controller
+# air-con-controller
 BUPT软件工程大作业
 
 ## project structure
 ```
-.
 ├── backend               # 后端
 │   └── README.md
 ├── doc                   # 项目文档
@@ -12,4 +11,8 @@ BUPT软件工程大作业
 │   └── README.md
 └── README.md
 ```
+
+## backend
+
+See [README.md](backend/README.md)
 
