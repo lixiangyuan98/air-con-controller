@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
@@ -34,7 +33,6 @@ INSTALLED_APPS = [
     'charger',
     'controller',
     'monitor',
-    'router',
     'syslogger',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -77,8 +75,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'AirConController.wsgi.application'
 
 # Channels
-ASGI_APPLICATION = 'router.routing.application'
-
+ASGI_APPLICATION = 'AirConController.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -128,3 +125,37 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s:%(lineno)d] - %(message)s',
+        },
+    },
+    'filters': {
+    },
+    'handlers': {
+        'default': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': 'system.log',
+            'when': 'D',
+            'formatter': 'default',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['default', 'console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}
