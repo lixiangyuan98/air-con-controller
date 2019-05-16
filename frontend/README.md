@@ -12,13 +12,13 @@
 
 ```
 ├── air-con-controller
-│   ├── babel.config.js
-│   ├── dist
-│   ├── node_modules
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── public
-│   └── src
+│   ├── babel.config.js
+│   ├── dist
+│   ├── node_modules
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── public
+│   └── src
 └── README.md
 ```
 

@@ -1,6 +1,6 @@
 ## Environment
 
-* Python 3.7
+* Python 3.6
 
 ## Requirement
 
@@ -10,13 +10,12 @@
 
 ```
 ├── AirConController
-│   ├── AirConController
-│   ├── charger            # 计费系统
-│   ├── controller　　　　 # 温控系统
-│   ├── manage.py
-│   ├── monitor            # 监控系统
-│   ├── syslogger          # 日志系统
-│   └── utils              # 工具类
+│   ├── AirConController
+│   ├── administrator      # 管理员
+│   ├── customer           # 顾客
+│   ├── manage.py
+│   ├── manager            # 经理
+│   └── receptionist       # 前台
 ├── README.md
 └── requirement.txt
 ```
