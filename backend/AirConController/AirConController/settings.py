@@ -30,10 +30,10 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'charger',
-    'controller',
-    'monitor',
-    'syslogger',
+    'administrator',
+    'customer',
+    'manager',
+    'receptionist',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'channels',
+    # 'channels',
 ]
 
 MIDDLEWARE = [
@@ -75,7 +75,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'AirConController.wsgi.application'
 
 # Channels
-ASGI_APPLICATION = 'AirConController.asgi.application'
+# ASGI_APPLICATION = 'AirConController.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
