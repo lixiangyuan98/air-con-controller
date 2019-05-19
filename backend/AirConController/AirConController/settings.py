@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'administrator',
+    'air_conditioner',
     'customer',
     'manager',
     'receptionist',
@@ -132,7 +133,7 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'default': {
-            'format': '%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s:%(lineno)d] - %(message)s',
+            'format': '%(asctime)s [%(levelname)s] [%(threadName)s] [%(pathname)s:%(lineno)d] - %(message)s',
         },
     },
     'filters': {
