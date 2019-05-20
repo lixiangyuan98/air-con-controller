@@ -481,7 +481,7 @@ class DetailFile:
         detail_list.sort(key=lambda item: item.start_time)
         self.__structured_detail = [
             '==================== DETAIL ====================',
-            'ROOM ID: ' + detail_list[0].room_id,
+            'ROOM ID: ' + str(detail_list[0].room_id),
         ]
         for detail in detail_list:
             self.__structured_detail.append(
@@ -538,7 +538,7 @@ class InvoiceFile:
         """
         self.__structured_invoice = [
             '==================== INVOICE ====================',
-            'ROOM ID: ' + invoice.room_id,
+            'ROOM ID: ' + str(invoice.room_id),
             'CHECK IN TIME: ' + str(invoice.check_in_time),
             'CHECK OUT TIME: ' + str(invoice.check_out_time),
             '-------------------------------------------------',
@@ -585,7 +585,7 @@ class ReportFile:
     def __init__(self, report):
         self.__structured_report = [
             '==================== REPORT ====================',
-            'ROOM ID: ' + report.room_id,
+            'ROOM ID: ' + str(report.room_id),
             'START TIME: ' + str(report.start_time),
             'FINISH TIME: ' + str(report.finish_time),
             '-------------------------------------------------',
