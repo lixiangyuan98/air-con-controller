@@ -30,11 +30,10 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'administrator',
+    'main_machine',
     'air_conditioner',
-    'customer',
-    'manager',
-    'receptionist',
+    'slave',
+    'logger',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,7 +141,7 @@ LOGGING = {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': 'system.log',
+            'filename': os.path.join(BASE_DIR, 'system.log'),
             'when': 'D',
             'formatter': 'default',
         },

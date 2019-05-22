@@ -11,12 +11,11 @@
 ```
 ├── AirConController
 │   ├── AirConController
-│   ├── administrator      # 管理员视图层
 │   ├── air_conditioner    # 温控系统核心
-│   ├── customer           # 顾客视图层
+│   ├── logger             # 日志视图层
+│   ├── main_machine       # 主控机视图层
 │   ├── manage.py
-│   ├── manager            # 经理视图层
-│   └── receptionist       # 前台视图层
+│   └── slave              # 从控机视图层
 ├── README.md
 └── requirement.txt
 ```
