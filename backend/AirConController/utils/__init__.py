@@ -1,12 +1,12 @@
 """
 工具类
 """
+import copy
 import logging
 
-
-# 全局日志记录器
 from threading import Timer, Thread, Lock
 
+# 全局日志记录器
 logger = logging.getLogger('django')
 room_ids = ('309c', '310c', '311c', '312c', 'f3')
 UPDATE_FREQUENCY = 1
@@ -37,7 +37,7 @@ class DBFacadeThread(Thread):
         self.result = None
 
     def run(self):
-        self.result = self.function(**self.kwargs)
+        self.result = copy.copy(self.function(**self.kwargs))
 
 
 class DBFacade:
@@ -49,7 +49,8 @@ class DBFacade:
     @staticmethod
     def exec(function, **kwargs):
         if DBFacade._thread is not None:
-            DBFacade._thread.join()
+            with DBFacade._lock:
+                DBFacade._thread.join()
         with DBFacade._lock:
             DBFacade._thread = DBFacadeThread(function, **kwargs)
             DBFacade._thread.start()

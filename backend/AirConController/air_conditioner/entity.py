@@ -143,12 +143,8 @@ class MasterMachine:
             raise RuntimeError('需先退房')
         details = DBFacade.exec(DetailModel.objects.filter, room_id=room_id, start_time__gte=room.check_in_time,
                                 finish_time__lte=room.check_out_time)
-        if details is not None:
-            results = [Detail(d.detail_id, d.room_id, d.start_time, d.finish_time, d.temp, d.speed,
-                              d.fee_rate, d.fee) for d in details]
-        else:
-            results = []
-        return room.check_in_time, results
+        return room.check_in_time, [Detail(d.detail_id, d.room_id, d.start_time, d.finish_time, d.temp, d.speed,
+                                    d.fee_rate, d.fee) for d in details]
 
     def get_invoice(self, room_id: str):
         """获取指定房间的账单"""

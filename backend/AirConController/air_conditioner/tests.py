@@ -1,4 +1,5 @@
 import datetime
+import threading
 import time
 from threading import Thread
 
@@ -103,28 +104,27 @@ class ControllerTest(TestCase):
         # 房间开机
         controller.dispatch(service='POWER', operation='power on', room_id='312c', current_temp=25)
         controller.dispatch(service='SLAVE', operation='change speed', room_id='312c', target_speed=2)
-        time.sleep(10)
+        time.sleep(70)
 
-        controller.dispatch(service='POWER', operation='power off', room_id='309c')
-        controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='309c')
-        controller.dispatch(service='DETAIL', operation='print detail', room_id='309c')
-        controller.dispatch(service='POWER', operation='power off', room_id='310c')
+        for room_id in ('309c', '310c', '311c', '312c'):
+            controller.dispatch(service='POWER', operation='power off', room_id=room_id)
+            controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id=room_id)
+            controller.dispatch(service='DETAIL', operation='print detail', room_id=room_id)
+        # # 关机
+        # controller.dispatch(service='POWER', operation='power off', room_id='309c')
+        # controller.dispatch(service='POWER', operation='power off', room_id='310c')
+        # controller.dispatch(service='POWER', operation='power off', room_id='311c')
+        # controller.dispatch(service='POWER', operation='power off', room_id='312c')
+        # # 退房
+        # controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='309c')
         # controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='310c')
+        # controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='311c')
+        # controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='312c')
+        # # 打印详单
+        # controller.dispatch(service='DETAIL', operation='print detail', room_id='309c')
         # controller.dispatch(service='DETAIL', operation='print detail', room_id='310c')
-        """
-        controller.dispatch(service='POWER', operation='power off', room_id='311c')
-        controller.dispatch(service='POWER', operation='power off', room_id='312c')
-        # 退房
-        controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='309c')
-        controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='310c')
-        controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='311c')
-        controller.dispatch(service='ADMINISTRATOR', operation='check out', room_id='312c')
-        # 打印详单
-        controller.dispatch(service='DETAIL', operation='print detail', room_id='309c')
-        controller.dispatch(service='DETAIL', operation='print detail', room_id='310c')
-        controller.dispatch(service='DETAIL', operation='print detail', room_id='311c')
-        controller.dispatch(service='DETAIL', operation='print detail', room_id='312c')
-        """
+        # controller.dispatch(service='DETAIL', operation='print detail', room_id='311c')
+        # controller.dispatch(service='DETAIL', operation='print detail', room_id='312c')
 
         # 主机关机
         controller.dispatch(service='ADMINISTRATOR', operation='stop')
@@ -140,5 +140,5 @@ class ControllerTest(TestCase):
         DBFacade.exec(Log.objects.filter, room_id='100c')
         MyThread().start()
         res = DBFacade.exec(Log.objects.filter, room_id='100c')
-        print(res[0].operation)
+        print(res)
         MyThread().start()
