@@ -180,7 +180,7 @@ class Controller:
         if operation == 'power on':
             current_temp = kwargs.get('current_temp')
             target_temp, speed = power_service.slave_machine_power_on(room_id, current_temp)
-            change_temp_and_speed_service.init_temp_and_speed(room_id, target_temp, speed)
+            return change_temp_and_speed_service.init_temp_and_speed(room_id, target_temp, speed)
         elif operation == 'power off':
             power_service.slave_machine_power_off(room_id)
         else:

@@ -10,7 +10,7 @@ from threading import Timer, Thread, Lock
 logger = logging.getLogger('django')
 room_ids = ('309c', '310c', '311c', '312c', 'f3')
 UPDATE_FREQUENCY = 1
-TEMPERATURE_CHANGE_RATE_PER_SEC = 1 / 60
+TEMPERATURE_CHANGE_RATE_PER_SEC = (0.5 / 60, 1 / 60, 1.5 / 60)
 
 
 class RepeatTimer(Timer):

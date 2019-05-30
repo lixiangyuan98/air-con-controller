@@ -12,7 +12,6 @@ class DetailModel(models.Model):
     room_id = models.CharField(max_length=16)
     start_time = models.DateTimeField()
     finish_time = models.DateTimeField()
-    temp = models.FloatField()
     speed = models.IntegerField()
     fee_rate = models.FloatField()
     fee = models.FloatField()

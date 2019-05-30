@@ -143,8 +143,8 @@ class MasterMachine:
             raise RuntimeError('需先退房')
         details = DBFacade.exec(DetailModel.objects.filter, room_id=room_id, start_time__gte=room.check_in_time,
                                 finish_time__lte=room.check_out_time)
-        return room.check_in_time, [Detail(d.detail_id, d.room_id, d.start_time, d.finish_time, d.temp, d.speed,
-                                    d.fee_rate, d.fee) for d in details]
+        return room.check_in_time, [Detail(d.detail_id, d.room_id, d.start_time, d.finish_time, d.speed, d.fee_rate,
+                                           d.fee) for d in details]
 
     def get_invoice(self, room_id: str):
         """获取指定房间的账单"""
@@ -343,14 +343,13 @@ class Detail:
         __room_id: 房间号
         __start_time: 记录起始时间
         __finish_time: 记录结束时间
-        __target_temp: 目标温度
         __target_speed: 目标风速
         __fee_rate: 费率
         __fee: 费用
     """
 
     def __init__(self, detail_id: Optional[int], room_id: str, start_time: datetime.datetime,
-                 finish_time: datetime.datetime, target_temp: float, target_speed: int, fee_rate: float, fee: float):
+                 finish_time: datetime.datetime, target_speed: int, fee_rate: float, fee: float):
         """
         初始化详单
 
@@ -362,7 +361,6 @@ class Detail:
             room_id: 房间号
             start_time: 记录起始时间
             finish_time: 记录结束时间
-            target_temp: 目标温度
             target_speed: 目标风速
             fee_rate: 费率
             fee: 费用
@@ -371,7 +369,6 @@ class Detail:
         self.__room_id = room_id
         self.__start_time = start_time
         self.__finish_time = finish_time
-        self.__target_temp = target_temp
         self.__target_speed = target_speed
         self.__fee_rate = fee_rate
         self.__fee = fee
@@ -396,10 +393,6 @@ class Detail:
     @property
     def finish_time(self):
         return self.__finish_time
-
-    @property
-    def target_temp(self):
-        return self.__target_temp
 
     @property
     def target_speed(self):
@@ -588,21 +581,19 @@ class DetailFile:
         """
         detail_list.sort(key=lambda item: item.start_time)
         self.__structured_detail = [
-            '==================== DETAIL ====================',
-            'ROOM ID: ' + str(room_id),
-            '------------------------------------------------'
+            'ROOM ID, ' + str(room_id),
+            'START TIME, END TIME, SPEED, SERVICE TIME, FEE RATE, FEE',
         ]
         for detail in detail_list:
             self.__structured_detail.append(
-                detail.start_time.strftime('%Y-%m-%d %H:%M:%S') + '\t' +
-                detail.finish_time.strftime('%Y-%m-%d %H:%M:%S') + '\t' +
-                str(detail.target_temp) + '\t' +
-                str(detail.target_speed) + '\t' +
-                str(detail.fee_rate) + '\t' +
+                detail.start_time.strftime('%Y-%m-%d %H:%M:%S') + ', ' +
+                detail.finish_time.strftime('%Y-%m-%d %H:%M:%S') + ', ' +
+                str(detail.target_speed) + ', ' +
+                str((detail.finish_time - detail.start_time).seconds) + ', ' +
+                str(detail.fee_rate) + ', ' +
                 str(round(detail.fee, 2))
             )
-        self.__structured_detail.append('===================== END ======================')
-        self.__filename = room_id + '-' + check_in_time.strftime('%Y%m%d%H%M%S') + '-detail.txt'
+        self.__filename = room_id + '-' + check_in_time.strftime('%Y%m%d%H%M%S') + '-detail.csv'
 
     @property
     def structured_detail(self):
@@ -620,7 +611,7 @@ class DetailFile:
             生成的详单文件的文件名
         """
         with open(self.__filename, 'w') as detail_file:
-            detail_file.write('\n'.join(self.__structured_detail))
+            detail_file.write('\r\n'.join(self.__structured_detail))
         logger.info('保存详单文件' + self.__filename)
 
         return self.__filename
@@ -643,15 +634,12 @@ class InvoiceFile:
             invoice: 账单
         """
         self.__structured_invoice = [
-            '==================== INVOICE ====================',
-            'ROOM ID: ' + str(invoice.room_id),
-            'CHECK IN TIME: ' + invoice.check_in_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'CHECK OUT TIME: ' + invoice.check_out_time.strftime('%Y-%m-%d %H:%M:%S'),
-            '-------------------------------------------------',
-            'TOTAL FEE:' + str(round(invoice.total_fee, 2)),
-            '====================== END ======================',
+            'ROOM ID, ' + str(invoice.room_id),
+            'CHECK IN TIME, ' + invoice.check_in_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'CHECK OUT TIME, ' + invoice.check_out_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'TOTAL FEE, ' + str(round(invoice.total_fee, 2)),
         ]
-        self.__filename = invoice.room_id + '-' + invoice.check_in_time.strftime('%Y%m%d%H%M%S') + '-invoice.txt'
+        self.__filename = invoice.room_id + '-' + invoice.check_in_time.strftime('%Y%m%d%H%M%S') + '-invoice.csv'
 
     @property
     def structured_invoice(self):
@@ -669,7 +657,7 @@ class InvoiceFile:
             生成的账单文件的文件名
         """
         with open(self.__filename, 'w') as invoice_file:
-            invoice_file.write('\n'.join(self.__structured_invoice))
+            invoice_file.write('\r\n'.join(self.__structured_invoice))
         logger.info('保存账单文件' + self.__filename)
 
         return self.__filename
@@ -686,21 +674,18 @@ class ReportFile:
 
     def __init__(self, report):
         self.__structured_report = [
-            '==================== REPORT =====================',
-            'ROOM ID: ' + report.room_id,
-            'START TIME: ' + report.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'FINISH TIME: ' + report.finish_time.strftime('%Y-%m-%d %H:%M:%S'),
-            '-------------------------------------------------',
-            'TIMES OF ON AND OFF: ' + str(report.times_of_on_off),
-            'TIMES OF DISPATCH: ' + str(report.times_of_dispatch),
-            'TIMES OF CHANGE TEMPERATURE: ' + str(report.times_of_change_temp),
-            'TIMES OF CHANGE FAN SPEED: ' + str(report.times_of_change_speed),
-            'RDR NUMBER: ' + str(report.number_of_detail),
-            'SERVICE TIME: ' + str(report.duration),
-            'FEE: ' + str(round(report.fee, 2)),
-            '====================== END ======================',
+            'ROOM ID, ' + report.room_id,
+            'START TIME, ' + report.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'FINISH TIME, ' + report.finish_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'TIMES OF ON AND OFF, ' + str(report.times_of_on_off),
+            'TIMES OF DISPATCH, ' + str(report.times_of_dispatch),
+            'TIMES OF CHANGE TEMPERATURE, ' + str(report.times_of_change_temp),
+            'TIMES OF CHANGE FAN SPEED, ' + str(report.times_of_change_speed),
+            'RDR NUMBER, ' + str(report.number_of_detail),
+            'SERVICE TIME, ' + str(report.duration),
+            'FEE, ' + str(round(report.fee, 2)),
         ]
-        self.__filename = report.room_id + '-' + report.start_time.strftime('%Y%m%d%H%M%S') + '-report.txt'
+        self.__filename = report.room_id + '-' + report.start_time.strftime('%Y%m%d%H%M%S') + '-report.csv'
 
     @property
     def structured_report(self):
@@ -718,7 +703,7 @@ class ReportFile:
             生成的报表文件的文件名
         """
         with open(self.__filename, 'w') as report_file:
-            report_file.write('\n'.join(self.__structured_report))
+            report_file.write('\r\n'.join(self.__structured_report))
         logger.info('保存报表文件' + self.__filename)
 
         return self.__filename

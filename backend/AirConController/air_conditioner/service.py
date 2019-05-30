@@ -22,26 +22,23 @@ class AirConditionerService:
         __start_time: 服务开始时间
         __duration: 服务时长
         __wait_time: 剩余等待时长
-        __target_temp: 目标温度
         __target_speed: 目标风速
         __fee_rate: 费率
         __fee_since_start: 服务开始以来的费用
     """
 
-    def __init__(self, room: Room, target_temp: float, target_speed: int, fee_rate: float):
+    def __init__(self, room: Room, target_speed: int, fee_rate: float):
         """
         初始化空调服务
 
         Args:
             room: 房间
-            target_temp: 目标温度
             target_speed: 目标风速
         """
         self.__room = room
         self.__start_time = ...  # type: datetime.datetime
         self.__duration = 0
         self.__wait_time = 120
-        self.__target_temp = target_temp
         self.__target_speed = target_speed
         self.__fee_rate = fee_rate
         self.__fee_rate_per_sec = fee_rate / 60
@@ -67,14 +64,6 @@ class AirConditionerService:
     @wait_time.setter
     def wait_time(self, wait_time):
         self.__wait_time = wait_time
-
-    @property
-    def target_temp(self):
-        return self.__target_temp
-
-    @target_temp.setter
-    def target_temp(self, target_temp):
-        self.__target_temp = target_temp
 
     @property
     def target_speed(self):
@@ -109,10 +98,10 @@ class AirConditionerService:
     def finish(self):
         """服务结束"""
         detail = Detail(None, self.room.room_id, self.start_time, self.start_time +
-                        datetime.timedelta(seconds=self.duration), self.target_temp, self.target_speed, self.fee_rate,
-                        self.fee_since_start)
+                        datetime.timedelta(seconds=self.duration), self.target_speed,
+                        self.fee_rate, self.fee_since_start)
         DBFacade.exec(DetailModel.objects.create, room_id=detail.room_id, start_time=detail.start_time,
-                      finish_time=detail.finish_time, temp=detail.target_temp, speed=detail.target_speed,
+                      finish_time=detail.finish_time, speed=detail.target_speed,
                       fee_rate=detail.fee_rate, fee=detail.fee)
         self.__start_time = ...
         logger.info('房间' + self.room.room_id + '停止服务')
@@ -125,9 +114,9 @@ class AirConditionerService:
             self.__fee_since_start += self.__fee_rate_per_sec * UPDATE_FREQUENCY
             self.__room.fee += self.__fee_rate_per_sec * UPDATE_FREQUENCY
             if mode == master_machine_mode.COOL:
-                self.room.current_temp -= TEMPERATURE_CHANGE_RATE_PER_SEC * UPDATE_FREQUENCY
+                self.room.current_temp -= TEMPERATURE_CHANGE_RATE_PER_SEC[self.target_speed] * UPDATE_FREQUENCY
             else:
-                self.room.current_temp += TEMPERATURE_CHANGE_RATE_PER_SEC * UPDATE_FREQUENCY
+                self.room.current_temp += TEMPERATURE_CHANGE_RATE_PER_SEC[self.target_speed] * UPDATE_FREQUENCY
         else:
             self.__wait_time -= UPDATE_FREQUENCY
 
@@ -149,7 +138,7 @@ class AirConditionerServiceQueue:
         self.__MAX_NUM = 3
         self.__queue = {}  # type: Dict[str, AirConditionerService]
         self.__min_speed = ...  # type: int
-        self.__max_speed = ... # type: int
+        self.__max_speed = ...  # type: int
         logger.info('初始化AirConditionerServiceQueue')
 
     @classmethod
@@ -175,7 +164,7 @@ class AirConditionerServiceQueue:
 
     def __update_max_min_speed(self):
         values = self.queue.values()
-        if len(values) == 0 :
+        if len(values) == 0:
             self.__min_speed = None
             self.__max_speed = None
         else:
@@ -241,10 +230,10 @@ class AirConditionerServiceQueue:
             for service in self.queue.values():
                 service.update(mode)
                 if mode == master_machine_mode.COOL:
-                    if service.room.current_temp - service.target_temp < 0.01:
+                    if service.room.current_temp - service.room.target_temp < 0.01:
                         reach_temp_services.append(service)
                 else:
-                    if service.room.current_temp - service.target_temp > 0.01:
+                    if service.room.current_temp - service.room.target_temp > 0.01:
                         reach_temp_services.append(service)
         return reach_temp_services
 
@@ -320,7 +309,7 @@ class WaitQueue:
     def remove(self, room_id: str):
         """将指定房间的服务对象从等待队列中移除"""
         if self.queue.get(room_id) is not None:
-            service = self.queue.pop(room_id)
+            self.queue.pop(room_id)
             self.__max_speed = max(list(self.queue.values()), key=lambda x: x.target_speed) \
                 if len(list(self.queue)) != 0 else 0
 
@@ -382,16 +371,22 @@ class UpdateService:
 
     def push_service(self, service: AirConditionerService):
         """将指定服务放入服务队列或等待队列中"""
-        serving_room = self.__master_machine.get_room(service.room.room_id)
-        status, service = self.__service_queue.push(service)
-        if status is True:
-            serving_room.status = room_status.SERVING
+        serving_room = self.__master_machine.get_room(service.room.room_id)  # type: Room
+        if (self.__master_machine.mode == master_machine_mode.COOL
+            and serving_room.current_temp <= serving_room.target_temp) \
+                or (self.__master_machine.mode == master_machine_mode.HOT
+                    and serving_room.current_temp >= serving_room.target_temp):
+            pass
         else:
-            serving_room.status = room_status.WAITING
-        if service is not None:
-            waiting_room = self.__master_machine.get_room(service.room.room_id)
-            waiting_room.status = room_status.WAITING
-            self.__wait_queue.push(service)
+            status, service = self.__service_queue.push(service)
+            if status is True:
+                serving_room.status = room_status.SERVING
+            else:
+                serving_room.status = room_status.WAITING
+            if service is not None:
+                waiting_room = self.__master_machine.get_room(service.room.room_id)
+                waiting_room.status = room_status.WAITING
+                self.__wait_queue.push(service)
 
 
 class ChangeTempAndSpeedService:
@@ -427,9 +422,10 @@ class ChangeTempAndSpeedService:
         room = self.__master_machine.get_room(room_id)
         room.target_temp = target_temp
         room.current_speed = target_speed
-        service = AirConditionerService(room, target_temp, target_speed, self.__master_machine.fee_rate[target_speed])
+        service = AirConditionerService(room, target_speed, self.__master_machine.fee_rate[target_speed])
         self.__update_service.push_service(service)
         logger.info('房间' + room.room_id + '初始化服务, 目标温度: ' + str(target_temp) + ', 风速: ' + str(target_speed))
+        return self.__master_machine.get_slave_status(room)
 
     def change_temp(self, room_id: str, target_temp: float):
         """
@@ -445,16 +441,10 @@ class ChangeTempAndSpeedService:
         room = self.__master_machine.get_room(room_id)
         room.target_temp = target_temp
         air_conditioner_service = self.__service_queue.get_service(room_id)
-        if air_conditioner_service is not None:    # 在服务队列中
-            self.__service_queue.remove(room_id)
-            air_conditioner_service.target_temp = target_temp
-            self.__update_service.push_service(air_conditioner_service)
-        else:
+        if air_conditioner_service is None:  # 不在服务队列中
             air_conditioner_service = self.__wait_queue.get_service(room_id)
-            if air_conditioner_service is not None:  # 在等待队列中
-                air_conditioner_service.target_temp = target_temp
-            else:  # 不在服务队列和等待队列
-                air_conditioner_service = AirConditionerService(room, target_temp, room.current_speed,
+            if air_conditioner_service is None:  # 不在服务队列和等待队列
+                air_conditioner_service = AirConditionerService(room, room.current_speed,
                                                                 self.__master_machine.fee_rate[room.current_speed])
                 self.__update_service.push_service(air_conditioner_service)
         DBFacade.exec(Log.objects.create, room_id=room_id, operation=operations.CHANGE_TEMP,
@@ -494,7 +484,7 @@ class ChangeTempAndSpeedService:
                 air_conditioner_service.fee_rate = self.__master_machine.fee_rate[target_speed]
                 self.__update_service.push_service(air_conditioner_service)
             else:  # 不在服务队列和等待队列中
-                air_conditioner_service = AirConditionerService(room, room.target_temp, target_speed,
+                air_conditioner_service = AirConditionerService(room, target_speed,
                                                                 self.__master_machine.fee_rate[target_speed])
                 self.__update_service.push_service(air_conditioner_service)
         DBFacade.exec(Log.objects.create, room_id=room_id, operation=operations.CHANGE_SPEED,

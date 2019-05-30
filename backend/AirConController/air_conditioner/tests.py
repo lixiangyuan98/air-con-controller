@@ -31,13 +31,14 @@ class ControllerTest(TestCase):
         # 入住
         controller.dispatch(service='ADMINISTRATOR', operation='check in', room_id='309c')
         # 房间开机
-        controller.dispatch(service='POWER', operation='power on', room_id='309c', current_temp=23.5)
+        room_status = controller.dispatch(service='POWER', operation='power on', room_id='309c', current_temp=25)
+        print(room_status)
         time.sleep(5)
         # 改变目标温度
-        # controller.dispatch(service='SLAVE', operation='change temp', room_id='309c', target_temp=25)
+        controller.dispatch(service='SLAVE', operation='change temp', room_id='309c', target_temp=21)
         time.sleep(5)
         # 改变目标风速
-        # controller.dispatch(service='SLAVE', operation='change speed', room_id='309c', target_speed=2)
+        controller.dispatch(service='SLAVE', operation='change speed', room_id='309c', target_speed=2)
         time.sleep(5)
         # 获取费用
         room_status = controller.dispatch(service='GET_FEE', room_id='309c')
