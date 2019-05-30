@@ -30,10 +30,10 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'administrator',
-    'customer',
-    'manager',
-    'receptionist',
+    'main_machine',
+    'air_conditioner',
+    'slave',
+    'logger',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -118,7 +118,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -132,7 +132,7 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'default': {
-            'format': '%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s:%(lineno)d] - %(message)s',
+            'format': '%(asctime)s [%(levelname)s] [%(threadName)s] [%(pathname)s:%(lineno)d] - %(message)s',
         },
     },
     'filters': {
@@ -141,7 +141,7 @@ LOGGING = {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': 'system.log',
+            'filename': os.path.join(BASE_DIR, 'system.log'),
             'when': 'D',
             'formatter': 'default',
         },

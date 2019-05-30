@@ -6,8 +6,7 @@ from django.urls import path, re_path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    re_path(r'^receptionist', include('receptionist.urls')),
-    re_path(r'^administrator', include('administrator.urls')),
-    re_path(r'^manager', include('manager.urls')),
-    re_path(r'^customer', include('customer.urls')),
+    re_path(r'^logger/', include('logger.urls')),
+    re_path(r'^main_machine/', include('main_machine.urls')),
+    re_path(r'^slave/', include('slave.urls')),
 ]
