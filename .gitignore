@@ -1,5 +1,12 @@
+# Module
+node_modules/
+
+# Mac
+.DS_Store
+
 # IDE
 .idea/
+.vscode/
 
 # Django
 __pycache__/
