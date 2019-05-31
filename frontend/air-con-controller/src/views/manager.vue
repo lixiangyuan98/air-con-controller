@@ -1,3 +1,6 @@
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 <template>
   <div id="managerpage">
     <div class="managertop">
@@ -118,6 +121,16 @@ export default {
         month: '',
         day: '',
       },
+      report:{
+        room_id: '',
+        on_off_times: '',
+        service_time: '',
+        fee: '',
+        dispatch_times: '',
+        rdr_number: '',
+        change_temp_times: '',
+        change_speed_times: '',
+      },
     }
   },
   methods: {
@@ -153,11 +166,35 @@ export default {
       this.classD= 'managernewbutton_on';
     },
     get_report: function(){
-      this.reporttable = true;
-      //console.log("get_invoice",this.room_id);
+      //3.1 查询报表
+      this.$axios({
+        method:'get',
+        url:'/logger/query_report?qtype='+this.qtype+'&room_id='+this.room_id+
+        '&date='+this.date.year+'-'+this.date.month+'-'+this.date.day,
+      }).then(function(response){
+        if(response.message == 'OK'){
+          this.report = response.result;
+          this.reporttable = true;
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
     },
     print_report: function(){
-      //console.log("print_rdr",this.room_id);
+      //3.2 打印报表
+      this.$axios({
+        method:'get',
+        url:'/logger/print_report?qtype='+this.qtype+'&room_id='+this.room_id+
+        '&date='+this.date.year+'-'+this.date.month+'-'+this.date.day,
+      }).then(function(response){
+        if(response.message == 'OK'){
+          alert("打印报表");
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
     },
   }
 }

@@ -1,3 +1,6 @@
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 <template>
   <div id="receptionpages">
     <div class="receptionpage" v-show="page_1">
@@ -33,10 +36,10 @@
             <th>费用</th>
           </tr>
           <tr>
-            <td>{{ room_id }}</td>
-            <td>check_in_time</td>
-            <td>check_out_time</td>
-            <td>fee</td>
+            <td>{{ invoices.room_id }}</td>
+            <td>{{ invoices.check_in_time }}</td>
+            <td>{{ invoices.check_out_time }}</td>
+            <td>{{ invoices.fee }}</td>
           </tr>
         </table>
       </div>
@@ -61,14 +64,14 @@
             <th>费率</th>
             <th>费用</th>
           </tr>
-          <tr>
-            <td>{{ room_id }}</td>
-            <td>start_time</td>
-            <td>end_time</td>
-            <td>speed</td>
-            <td>target_temper</td>
-            <td>fee_rate</td>
-            <td>fee</td>
+          <tr v-for="rdr in rdrs" :key="rdr.start_time">
+            <td v-text="rdr.room_id"></td>
+            <td v-text="rdr.start_time"></td>
+            <td v-text="rdr.end_time"></td>
+            <td v-text="rdr.speed"></td>
+            <td v-text="rdr.target_temper"></td>
+            <td v-text="rdr.fee_rate"></td>
+            <td v-text="rdr.fee"></td>
           </tr>
         </table>
       </div>
@@ -170,6 +173,13 @@ export default {
       invoicetable: false,
       rdrtable: false,
       room_id: '',
+      invoices: {
+        room_id: '',
+        check_in_time: '',
+        check_out_time: '',
+        fee: '',
+      },
+      rdrs: [],
     }
   },
   methods: {
@@ -192,18 +202,62 @@ export default {
       this.page_3 = true;
     },
     get_invoice: function(){
-      this.invoicetable = true;
-      //console.log("get_invoice",this.room_id);
-    },
-    get_rdr: function(){
-      this.rdrtable = true;
-      //console.log("get_invoice",this.room_id);
+      //3.3 查询账单
+      this.$axios({
+        method:'get',
+        url:'/logger/query_invoice?room_id='+this.room_id,
+      }).then(function(response){
+        if(response.message == 'OK'){
+          this.invoices = response.result;
+          this.invoicetable = true;
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
     },
     print_invoice: function(){
-      //console.log("print_invoice",this.room_id);
+      //3.4 打印账单
+      this.$axios({
+        method:'get',
+        url:'/logger/print_invoice?room_id='+this.room_id,
+      }).then(function(response){
+        if(response.message == 'OK'){
+          alert("打印账单");
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
+    },
+    get_rdr: function(){
+      //3.5 查询详单
+      this.$axios({
+        method:'get',
+        url:'/logger/query_rdr?room_id='+this.room_id,
+      }).then(function(response){
+        if(response.message == 'OK'){
+          this.rdrs = response.result;
+          this.rdrtable = true;
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
     },
     print_rdr: function(){
-      //console.log("print_rdr",this.room_id);
+      //3.6 打印详单
+      this.$axios({
+        method:'get',
+        url:'/logger/print_rdr?room_id='+this.room_id,
+      }).then(function(response){
+        if(response.message == 'OK'){
+          alert("打印详单");
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
     },
   }
 }

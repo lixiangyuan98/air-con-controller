@@ -1,3 +1,6 @@
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 <template>
   <div id="serverpage">
     <div v-if="poweron" class="servercontainer">
@@ -43,8 +46,9 @@
       </div>
     </div>
     <div class="serverfoot">
-      <button class="serverbtn" v-on:click="power_on"><i class="fa fa-power-off"></i></button>
-      <button class="serverbtn" v-on:click="start_up"><i class="fa fa-play"></i></button>
+      <button class="serverbtn" v-on:click="power_on"><i class="fa fa-power-off">{{ power_turn }}</i></button>
+      <button class="serverbtn" v-on:click="check" v-if="!checkout"><i class="fa fa-check"></i></button>
+      <button class="serverbtn" v-on:click="start_up" v-if="checkout"><i class="fa fa-play"></i></button>
       <button class="serverbtn" v-on:click="changerole"><i class="fa fa-times-rectangle"></i></button>
     </div>
   </div>
@@ -122,23 +126,118 @@ export default {
       default_temper: '',
       default_speed: '',
       mode: '',
+      power_turn: 'ON',
+      checkout: false,
       startup: false,
       poweron: false,
+      roomstates:[],
     }
   },
   methods: {
     power_on: function() {
-      //power_on
-      this.poweron = true;
+      //1.1主机开机
+      if (this.$store.state.power_state==false){
+        this.$axios({
+          method:'get',
+          url:'/main_machine/power_on',
+        }).then(function(response){
+          if(response.message == 'OK'){
+            this.poweron = true;
+            this.power_turn='OFF';
+            this.$store.state.power_state=true;
+          }
+          else alert(response.message);
+        }).catch(function(error){
+          alert(error);
+        })
+      }
+      //1.5关机
+      else if (this.$store.state.power_state==true){
+        this.$axios({
+          method:'get',
+          url:'/main_machine/close',
+        }).then(function(response){
+          if(response.message == 'OK'){
+            this.poweron = false;
+            this.power_turn='ON';
+            this.$store.state.power_state=false;
+          }
+          else alert(response.message);
+        }).catch(function(error){
+          alert(error);
+        })
+      }
+    },
+    check: function() {
+      //1.2参数初始化
+      if ((this.highest_temper > this.lowest_temper) && (this.high_speed_fee > this.middle_speed_fee) &&
+      (this.middle_speed_fee > this.low_speed_fee)){
+        this.$axios({
+          method:'get',
+          url:'/main_machine/init_param?highest_temper='+this.highest_temper+
+          '&lowest_temper='+this.lowest_temper+'&low_speed_fee='+this.low_speed_fee+
+          '&middle_speed_fee='+this.middle_speed_fee+'&high_speed_fee='+this.high_speed_fee+
+          '&default_temper='+this.default_temper+'&default_speed='+this.default_speed+
+          '&mode='+this.mode,
+        }).then(function(response){
+          if(response.message == 'OK'){
+            this.checkout = true;
+          }
+          else alert(response.message);
+        }).catch(function(error){
+          alert(error);
+        })
+      }
     },
     start_up: function() {
-      //start_up
-      this.startup = true;
+      //1.3开始执行
+      this.$axios({
+        method:'get',
+        url:'/main_machine/start_up',
+      }).then(function(response){
+        if(response.message == 'OK'){
+          this.startup = true;
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
     },
     changerole: function() {
-      //start_up
       this.$router.push("/");
     },
+    checking: function() {
+      //1.4监视空调
+      this.$axios({
+        method:'get',
+        url:'/main_machine/check_room_state',
+      }).then(function(response){
+        if(response.message == 'OK'){
+          this.roomstates = response.result;
+        }
+        else alert(response.message);
+      }).catch(function(error){
+        alert(error);
+      })
+    },
+  },
+  watch: {
+    //1.4监视空调
+    check_room: function () {
+      // 当开始运行startup的时候,保持3秒轮询
+      if (this.startup == true) {
+        var timer = setInterval(() => {
+          setTimeout(() => {
+            this.checking(); //调用接口的方法
+          }, 0)
+        }, 3000);//3s
+      }
+      // 当页面关闭的时候,结束轮询,否则就会一直发请求,
+      //使用$once(eventName, eventHandler)一次性监听事件
+      this.$once('hook:boforeDestory', () => {
+        clearInterval(timer);
+      })
+    }
   }
 }
 </script>

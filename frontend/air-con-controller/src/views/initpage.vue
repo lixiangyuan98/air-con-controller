@@ -1,3 +1,6 @@
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 <template>
   <div id="initpages">
     <div class="initpage" v-show="page_1">
@@ -14,7 +17,7 @@
     </div>
 
     <div class="initpage" v-show="page_2">
-      <button class="initcontain initcontain_5" v-for="room in rooms" :key="room" v-on:click="to_room(room.num)">
+      <button class="initcontain initcontain_5" v-for="room in rooms" :key="room.num" v-on:click="to_room(room.id)">
         <div class="initcontainer">
           <span>{{room.id}}</span>
         </div>
@@ -22,7 +25,7 @@
     </div>
 
     <div class="initpage" v-show="page_3">
-      <button class="initcontain initcontain_3" v-for="worker in workers" :key="worker" v-on:click="to_work(worker.num)">
+      <button class="initcontain initcontain_3" v-for="worker in workers" :key="worker.num" v-on:click="to_work(worker.num)">
         <div class="initcontainer">
           <span>{{worker.name}}</span>
         </div>
@@ -121,9 +124,21 @@ export default {
       this.page_2 = false;
       this.page_3 = true;
     },
-    to_room: function(num){
-      this.chose=[1,num];
-      this.$router.push("room");
+    to_room: function(id){
+      this.$router.push({ path: '/room', query: { room_id: id }});
+      //2.1 入住
+//      this.$axios({
+//        method:'get',
+//        url:'/slave/check_in?room_id='+id,
+//      }).then(function(response){
+//        if(response.message == 'OK'){
+//          this.$router.push({ path: '/room', query: { room_id: id }});
+//        }
+//        else alert(response.message);
+//      }).catch(function(error){
+//        alert(error);
+//      })
+
     },
     to_work: function(num){
       if (num==1){

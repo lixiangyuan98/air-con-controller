@@ -5,12 +5,8 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-
+    power_state: false,
   },
-  mutations: {
-
-  },
-  actions: {
-
-  }
+  //mutations: {},
+  //actions: {}
 })
