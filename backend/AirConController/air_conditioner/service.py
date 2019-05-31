@@ -279,9 +279,6 @@ class WaitQueue:
 
     def push(self, service: AirConditionerService) -> None:
         """将房间加入等待队列"""
-        # if service is not isinstance(service, AirConditionerService):
-        #     logger.error('服务不存在')
-        #     raise RuntimeError('服务不存在')
         self.queue[service.room.room_id] = service
         self.__max_speed = service.target_speed if service.target_speed > self.__max_speed else self.__max_speed
         logger.info('房间' + service.room.room_id + '开始等待')

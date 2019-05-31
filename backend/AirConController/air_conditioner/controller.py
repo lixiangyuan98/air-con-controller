@@ -1,6 +1,5 @@
 import threading
 
-from air_conditioner.entity import MasterMachine
 from utils import logger
 from .service import (
     AdministratorService, GetFeeService, DetailService,

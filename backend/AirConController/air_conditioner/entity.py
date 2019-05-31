@@ -190,6 +190,8 @@ class MasterMachine:
             'speed': room.current_speed,
             'service_time': room.service_time,
             'target_temper': room.target_temp,
+            'highest_temper': self.temp_high_limit,
+            'lowest_temper': self.temp_low_limit,
             'fee': round(room.fee, 2),
             'fee_rate': self.__fee_rate[room.current_speed]
         }
