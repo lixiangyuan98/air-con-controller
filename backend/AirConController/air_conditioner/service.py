@@ -436,14 +436,10 @@ class ChangeTempAndSpeedService:
             logger.error('目标温度不合法')
             raise RuntimeError('目标温度不合法')
         room = self.__master_machine.get_room(room_id)
+        if room.status == room_status.CLOSED or room.status == room_status.AVAILABLE:
+            logger.error('未入住或未开机')
+            raise RuntimeError('未入住或未开机')
         room.target_temp = target_temp
-        air_conditioner_service = self.__service_queue.get_service(room_id)
-        if air_conditioner_service is None:  # 不在服务队列中
-            air_conditioner_service = self.__wait_queue.get_service(room_id)
-            if air_conditioner_service is None:  # 不在服务队列和等待队列
-                air_conditioner_service = AirConditionerService(room, room.current_speed,
-                                                                self.__master_machine.fee_rate[room.current_speed])
-                self.__update_service.push_service(air_conditioner_service)
         DBFacade.exec(Log.objects.create, room_id=room_id, operation=operations.CHANGE_TEMP,
                       op_time=datetime.datetime.now())
         logger.info('房间' + room_id + '改变目标温度为' + str(target_temp))
@@ -460,6 +456,9 @@ class ChangeTempAndSpeedService:
             logger.error('目标风速不合法')
             raise RuntimeError('目标风速不合法')
         room = self.__master_machine.get_room(room_id)
+        if room.status == room_status.CLOSED or room.status == room_status.AVAILABLE:
+            logger.error('未入住或未开机')
+            raise RuntimeError('未入住或未开机')
         room.current_speed = target_speed
         air_conditioner_service = self.__service_queue.get_service(room_id)
         if air_conditioner_service is not None:  # 在服务队列中
@@ -479,10 +478,6 @@ class ChangeTempAndSpeedService:
                 self.__wait_queue.remove(room_id)
                 air_conditioner_service.target_speed = target_speed
                 air_conditioner_service.fee_rate = self.__master_machine.fee_rate[target_speed]
-                self.__update_service.push_service(air_conditioner_service)
-            else:  # 不在服务队列和等待队列中
-                air_conditioner_service = AirConditionerService(room, target_speed,
-                                                                self.__master_machine.fee_rate[target_speed])
                 self.__update_service.push_service(air_conditioner_service)
         DBFacade.exec(Log.objects.create, room_id=room_id, operation=operations.CHANGE_SPEED,
                       op_time=datetime.datetime.now())
