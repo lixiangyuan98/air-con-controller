@@ -21,21 +21,21 @@ def query_report(request):
         content = controller.dispatch(service='REPORT', operation='query report',
                                       room_id=room_id_get, date=date_get_da,
                                       qtype=qtype_get)
-        content = json.dumps({'message': "OK",
-                              'result': {
-                                  'room_id': content.room_id,
-                                  'on_off_times': content.times_of_on_off,
-                                  'service_time': content.duration,
-                                  'fee': content.fee,
-                                  'dispatch_time': content.times_of_dispatch,
-                                  'rdr_number': content.number_of_detail,
-                                  'change_temp_times': content.times_of_change_temp,
-                                  'change_speed_times': content.times_of_change_speed,
-                              }
-                              }, ensure_ascii=False)
-        return JsonResponse(content, safe=False)
+        content = {'message': "OK",
+                   'result': {
+                       'room_id': content.room_id,
+                       'on_off_times': content.times_of_on_off,
+                       'service_time': content.duration,
+                       'fee': content.fee,
+                       'dispatch_time': content.times_of_dispatch,
+                       'rdr_number': content.number_of_detail,
+                       'change_temp_times': content.times_of_change_temp,
+                       'change_speed_times': content.times_of_change_speed,
+                   }
+                   }
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def print_report(request):
@@ -48,10 +48,10 @@ def print_report(request):
         controller = Controller.instance()
         controller.dispatch(service='REPORT', operation='print report', room_id=room_id_get, date=date_get_da,
                             qtype=qtype_get)
-        content = json.dumps({'message': "OK", 'result': None}, ensure_ascii=False)
-        return JsonResponse(content, safe=False)
+        content = {'message': "OK", 'result': None}
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def query_invoice(request):
@@ -59,17 +59,17 @@ def query_invoice(request):
     try:
         controller = Controller.instance()
         content = controller.dispatch(service='INVOICE', operation='query invoice', room_id=room_id_get)
-        content1 = json.dumps({'message': 'OK',
-                               'result': {
-                                   'room_id': content.room_id,
-                                   'check_in_time': content.check_in_time.strftime('%Y-%m-%d %H:%M:%S'),
-                                   'check_out_time': content.check_out_time.strftime('%Y-%m-%d %H:%M:%S'),
-                                   'fee': content.total_fee
-                               }
-                               }, ensure_ascii=False)
-        return JsonResponse(content1, safe=False)
+        content = {'message': 'OK',
+                   'result': {
+                       'room_id': content.room_id,
+                       'check_in_time': content.check_in_time.strftime('%Y-%m-%d %H:%M:%S'),
+                       'check_out_time': content.check_out_time.strftime('%Y-%m-%d %H:%M:%S'),
+                       'fee': content.total_fee
+                   }
+                   }
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def print_invoice(request):
@@ -77,10 +77,10 @@ def print_invoice(request):
     try:
         controller = Controller.instance()
         controller.dispatch(service='INVOICE', operation='print invoice', room_id=room_id_get)
-        content = json.dumps({'message': "OK", 'result': None}, ensure_ascii=False)
-        return JsonResponse(content, safe=False)
+        content = {'message': "OK", 'result': None}
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def query_rdr(request):
@@ -88,22 +88,22 @@ def query_rdr(request):
     try:
         controller = Controller.instance()
         content = controller.dispatch(service='DETAIL', operation='query detail', room_id=room_id_get)
-        content1 = json.dumps({'message': 'OK',
-                               'result': [
-                                   {
-                                       'room_id': c.room_id,
-                                       'start_time': c.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                                       'end_time': c.finish_time.strftime('%Y-%m-%d %H:%M:%S'),
-                                       'speed': c.target_speed,
-                                       'fee_rate': c.fee_rate,
-                                       'fee': round(c.fee, 2)
-                                   }
-                                   for c in content
-                               ]
-                               }, ensure_ascii=False)
-        return JsonResponse(content1, safe=False)
+        content = {'message': 'OK',
+                   'result': [
+                       {
+                           'room_id': c.room_id,
+                           'start_time': c.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                           'end_time': c.finish_time.strftime('%Y-%m-%d %H:%M:%S'),
+                           'speed': c.target_speed,
+                           'fee_rate': c.fee_rate,
+                           'fee': round(c.fee, 2)
+                       }
+                       for c in content
+                   ]
+                   }
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def print_rdr(request):
@@ -111,7 +111,7 @@ def print_rdr(request):
     try:
         controller = Controller.instance()
         controller.dispatch(service='DETAIL', operation='print detail', room_id=room_id_get)
-        content = json.dumps({'message': "OK", 'result': None}, ensure_ascii=False)
-        return JsonResponse(content, safe=False)
+        content = {'message': "OK", 'result': None}
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})

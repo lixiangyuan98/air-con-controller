@@ -7,10 +7,10 @@ def power_on(request):
     try:
         controller = Controller.instance()
         controller.dispatch(service='ADMINISTRATOR', operation='power on')
-        content = json.dumps({'message': 'OK', 'result': None}, ensure_ascii=False)
-        return JsonResponse(content,safe=False)
+        content = {'message': 'OK', 'result': None}
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def init_param(request):
@@ -22,10 +22,10 @@ def init_param(request):
     default_temper_get = float(request.GET.get('default_temper'))
     default_speed_get = int(request.GET.get('default_speed'))
     mode_get = int(request.GET.get('mode'))
-    if mode_get==0:
-        mode_get="制冷"
+    if mode_get == 0:
+        mode_get = "制冷"
     else:
-        mode_get="制热"
+        mode_get = "制热"
 
     try:
         controller = Controller.instance()
@@ -34,38 +34,36 @@ def init_param(request):
                             default_target_temp=default_temper_get,
                             default_speed=default_speed_get,
                             fee_rate=(low_speed_fee_get, middle_speed_fee_get, high_speed_fee_get))
-        content = json.dumps({'message': "OK", 'result': None}, ensure_ascii=False)
-        return JsonResponse(content,safe=False)
+        content = {'message': "OK", 'result': None}
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def start_up(request):
     try:
         controller = Controller.instance()
         controller.dispatch(service='ADMINISTRATOR', operation='start')
-        content = json.dumps({'message': 'OK', 'result': None}, ensure_ascii=False)
-        return JsonResponse(content,safe=False)
+        content = {'message': 'OK', 'result': None}
+        return JsonResponse(content, safe=False)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def check_room_state(request):
     try:
         controller = Controller.instance()
-        content = json.dumps(
-            {'message': 'OK', 'result': controller.dispatch(service='ADMINISTRATOR', operation='get status')},
-            ensure_ascii=False)
-        return JsonResponse(content,safe=False)
+        content = {'message': 'OK', 'result': controller.dispatch(service='ADMINISTRATOR', operation='get status')}
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
 
 
 def close(request):
     try:
         controller = Controller.instance()
         controller.dispatch(service='ADMINISTRATOR', operation='stop')
-        content = json.dumps({'message': 'OK', 'result': None}, ensure_ascii=False)
-        return JsonResponse(content,safe=False)
+        content = {'message': 'OK', 'result': None}
+        return JsonResponse(content)
     except RuntimeError as error:
-        return JsonResponse(json.dumps({'message': str(error)}, ensure_ascii=False), safe=False)
+        return JsonResponse({'message': str(error)})
