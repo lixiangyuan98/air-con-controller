@@ -91,8 +91,6 @@ class AirConditionerService:
         self.__duration = 0
         self.__fee_since_start = 0.0
         self.__start_time = datetime.datetime.now()
-        DBFacade.exec(Log.objects.create, room_id=self.room.room_id, operation=operations.DISPATCH,
-                      op_time=datetime.datetime.now())
         logger.info('房间' + self.room.room_id + '开始服务')
 
     def finish(self):
@@ -201,6 +199,8 @@ class AirConditionerServiceQueue:
             service_to_pop.finish()
             self.__update_max_min_speed()
             service.start()
+            DBFacade.exec(Log.objects.create, room_id=service.room.room_id, operation=operations.DISPATCH,
+                          op_time=datetime.datetime.now())
             return True, service_to_pop
         elif service.target_speed == self.__min_speed and service.target_speed == self.__max_speed:
             service.wait_time = 120
@@ -359,7 +359,9 @@ class UpdateService:
             service.room.status = room_status.STANDBY
         timeout_services = self.__wait_queue.update(self.__master_machine.mode)
         for service in timeout_services:
-            self.push_service(service)
+            if self.push_service(service) is True:
+                DBFacade.exec(Log.objects.create, room_id=service.room.room_id, operation=operations.DISPATCH,
+                              op_time=datetime.datetime.now())
         while self.__service_queue.has_space():
             service = self.__wait_queue.pop()
             if service is not None:
@@ -367,24 +369,32 @@ class UpdateService:
             else:
                 break
 
-    def push_service(self, service: AirConditionerService):
-        """将指定服务放入服务队列或等待队列中"""
+    def push_service(self, service: AirConditionerService) -> Optional[bool]:
+        """
+        将指定服务放入服务队列或等待队列中
+
+        Returns:
+            True表示放入服务队列, False表示放入等待队列, None表示无需服务
+        """
         serving_room = self.__master_machine.get_room(service.room.room_id)  # type: Room
         if (self.__master_machine.mode == master_machine_mode.COOL
             and serving_room.current_temp <= serving_room.target_temp) \
                 or (self.__master_machine.mode == master_machine_mode.HOT
                     and serving_room.current_temp >= serving_room.target_temp):
-            pass
+            return None
         else:
             status, service = self.__service_queue.push(service)
             if status is True:
                 serving_room.status = room_status.SERVING
+                in_service_queue = True
             else:
                 serving_room.status = room_status.WAITING
+                in_service_queue = False
             if service is not None:
                 waiting_room = self.__master_machine.get_room(service.room.room_id)
                 waiting_room.status = room_status.WAITING
                 self.__wait_queue.push(service)
+            return in_service_queue
 
     def reset(self):
         self.timer.cancel()
