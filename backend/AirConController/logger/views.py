@@ -1,11 +1,8 @@
-import json
 import datetime
-from django.shortcuts import render
+
+from django.http import JsonResponse, StreamingHttpResponse
+
 from air_conditioner.controller import Controller
-from air_conditioner.service import PowerService
-from _ast import operator
-from django.http import JsonResponse
-from air_conditioner.entity import Invoice
 
 
 # Create your views here.
@@ -46,10 +43,13 @@ def print_report(request):
     date_get_da = datetime.datetime(int(date_get_sp[0]), int(date_get_sp[1]), int(date_get_sp[2]))
     try:
         controller = Controller.instance()
-        controller.dispatch(service='REPORT', operation='print report', room_id=room_id_get, date=date_get_da,
+        filename = controller.dispatch(service='REPORT', operation='print report', room_id=room_id_get, date=date_get_da,
                             qtype=qtype_get)
-        content = {'message': "OK", 'result': None}
-        return JsonResponse(content)
+        file = open(filename, 'r')
+        response = StreamingHttpResponse(file)
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="' + filename + '"'
+        return response
     except RuntimeError as error:
         return JsonResponse({'message': str(error)})
 
@@ -76,9 +76,12 @@ def print_invoice(request):
     room_id_get = request.GET.get('room_id')
     try:
         controller = Controller.instance()
-        controller.dispatch(service='INVOICE', operation='print invoice', room_id=room_id_get)
-        content = {'message': "OK", 'result': None}
-        return JsonResponse(content)
+        filename = controller.dispatch(service='INVOICE', operation='print invoice', room_id=room_id_get)
+        file = open(filename, 'r')
+        response = StreamingHttpResponse(file)
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="' + filename + '"'
+        return response
     except RuntimeError as error:
         return JsonResponse({'message': str(error)})
 
@@ -110,8 +113,11 @@ def print_rdr(request):
     room_id_get = request.GET.get('room_id')
     try:
         controller = Controller.instance()
-        controller.dispatch(service='DETAIL', operation='print detail', room_id=room_id_get)
-        content = {'message': "OK", 'result': None}
-        return JsonResponse(content)
+        filename = controller.dispatch(service='DETAIL', operation='print detail', room_id=room_id_get)
+        file = open(filename, 'r')
+        response = StreamingHttpResponse(file)
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="' + filename + '"'
+        return response
     except RuntimeError as error:
         return JsonResponse({'message': str(error)})

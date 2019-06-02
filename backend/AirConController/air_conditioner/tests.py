@@ -62,6 +62,31 @@ class ControllerTest(TestCase):
         # 主机关机
         controller.dispatch(service='ADMINISTRATOR', operation='stop')
 
+    def test_on_off(self):
+        # 取得控制器对象
+        controller = Controller.instance()
+        # 主机开机
+        controller.dispatch(service='ADMINISTRATOR', operation='power on')
+        # 参数初始化
+        controller.dispatch(service='ADMINISTRATOR', operation='set param', mode=master_machine_mode.COOL,
+                            temp_low_limit=16, temp_high_limit=30, default_target_temp=24,
+                            default_speed=fan_speed.NORMAL, fee_rate=(0.5, 0.75, 1.5))
+        # 开始执行
+        controller.dispatch(service='ADMINISTRATOR', operation='start')
+        time.sleep(10)
+        controller.dispatch(service='ADMINISTRATOR', operation='stop')
+
+        # 主机开机
+        controller.dispatch(service='ADMINISTRATOR', operation='power on')
+        # 参数初始化
+        controller.dispatch(service='ADMINISTRATOR', operation='set param', mode=master_machine_mode.COOL,
+                            temp_low_limit=16, temp_high_limit=30, default_target_temp=24,
+                            default_speed=fan_speed.NORMAL, fee_rate=(0.5, 0.75, 1.5))
+        # 开始执行
+        controller.dispatch(service='ADMINISTRATOR', operation='start')
+        time.sleep(10)
+        controller.dispatch(service='ADMINISTRATOR', operation='stop')
+
     def get_status(self):
         controller = Controller.instance()
         # 监视空调
@@ -124,21 +149,4 @@ class ControllerTest(TestCase):
         # controller.dispatch(service='DETAIL', operation='print detail', room_id='309c')
         # controller.dispatch(service='DETAIL', operation='print detail', room_id='310c')
         # controller.dispatch(service='DETAIL', operation='print detail', room_id='311c')
-        # controller.dispatch(service='DETAIL', operation='print detail', room_id='312c')
-
-        # 主机关机
-        controller.dispatch(service='ADMINISTRATOR', operation='stop')
-        timer.cancel()
-
-    def test_db(self):
-
-        class MyThread(Thread):
-
-            def run(self) -> None:
-                DBFacade.exec(Log.objects.create, room_id='100c', operation='test', op_time=datetime.datetime.now())
-
-        DBFacade.exec(Log.objects.filter, room_id='100c')
-        MyThread().start()
-        res = DBFacade.exec(Log.objects.filter, room_id='100c')
-        print(res)
-        MyThread().start()
+        # controller.dispatch(service=

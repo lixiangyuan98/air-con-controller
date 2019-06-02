@@ -1,6 +1,7 @@
-import json
-from air_conditioner.controller import Controller
 from django.http import JsonResponse
+
+from air_conditioner.controller import Controller
+from utils import logger
 
 
 def power_on(request):
@@ -47,6 +48,7 @@ def start_up(request):
         content = {'message': 'OK', 'result': None}
         return JsonResponse(content, safe=False)
     except RuntimeError as error:
+        logger.error(error)
         return JsonResponse({'message': str(error)})
 
 

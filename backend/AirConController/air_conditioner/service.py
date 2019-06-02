@@ -9,7 +9,7 @@ from typing import List, Tuple, Optional, Dict
 
 from air_conditioner.models import DetailModel, Log
 from utils import logger, master_machine_mode, fan_speed, room_status, UPDATE_FREQUENCY, \
-    TEMPERATURE_CHANGE_RATE_PER_SEC, RepeatTimer, operations, DBFacade
+    TEMPERATURE_CHANGE_RATE_PER_SEC, RepeatTimer, operations, DBFacade, room_ids
 from .entity import MasterMachine, Detail, Invoice, ReportFile, Report, InvoiceFile, Room
 
 
@@ -355,6 +355,7 @@ class UpdateService:
         reach_temp_services = self.__service_queue.update(self.__master_machine.mode)
         for service in reach_temp_services:
             self.__service_queue.remove(service.room.room_id)
+            logger.info('房间' + service.room.room_id + '到达设定温度')
             service.room.status = room_status.STANDBY
         timeout_services = self.__wait_queue.update(self.__master_machine.mode)
         for service in timeout_services:
@@ -384,6 +385,10 @@ class UpdateService:
                 waiting_room = self.__master_machine.get_room(service.room.room_id)
                 waiting_room.status = room_status.WAITING
                 self.__wait_queue.push(service)
+
+    def reset(self):
+        self.timer.cancel()
+        self.timer = RepeatTimer(UPDATE_FREQUENCY, self._task)
 
 
 class ChangeTempAndSpeedService:
@@ -432,7 +437,7 @@ class ChangeTempAndSpeedService:
             room_id: 房间号
             target_temp: 目标温度
         """
-        if not self.__master_machine.temp_low_limit < target_temp < self.__master_machine.temp_high_limit:
+        if not self.__master_machine.temp_low_limit <= target_temp <= self.__master_machine.temp_high_limit:
             logger.error('目标温度不合法')
             raise RuntimeError('目标温度不合法')
         room = self.__master_machine.get_room(room_id)
@@ -581,7 +586,7 @@ class AdministratorService:
         if mode not in (master_machine_mode.COOL, master_machine_mode.HOT):
             logger.error('mode不存在')
             raise RuntimeError('mode不存在')
-        if not temp_low_limit < default_target_temp < temp_high_limit:
+        if not temp_low_limit <= default_target_temp <= temp_high_limit:
             logger.error('目标温度不合法')
             raise RuntimeError('目标温度不合法')
         if default_speed not in (fan_speed.LOW, fan_speed.NORMAL, fan_speed.HIGH):
@@ -602,18 +607,21 @@ class AdministratorService:
             temp_high_limit: 最高温度
         """
         if self.__master_machine is ...:
-            logger.error('MasterMachine未初始化')
-            raise RuntimeError('MasterMachine未初始化')
+            logger.error('主控机未初始化')
+            raise RuntimeError('主控机未初始化')
         UpdateService.instance().timer.start()
         return self.__master_machine.start()
 
     def stop_master_machine(self) -> None:
         """关闭主控机"""
         if self.__master_machine is ...:
-            logger.error('MasterMachine未初始化')
-            raise RuntimeError('MasterMachine未初始化')
+            logger.error('主控机未初始化')
+            raise RuntimeError('主控机未初始化')
         self.__master_machine.stop()
-        UpdateService.instance().timer.cancel()
+        for room_id in room_ids:
+            AirConditionerServiceQueue.instance().remove(room_id)
+            WaitQueue.instance().remove(room_id)
+        UpdateService.instance().reset()
 
     def get_status(self) -> List[dict]:
         """
@@ -631,14 +639,20 @@ class AdministratorService:
             target_temper: 目标温度
         """
         if self.__master_machine is ...:
-            logger.error('MasterMachine未初始化')
-            raise RuntimeError('MasterMachine未初始化')
+            logger.error('主控机未初始化')
+            raise RuntimeError('主控机未初始化')
         return self.__master_machine.get_all_status()
 
     def check_in(self, room_id: str):
+        if self.__master_machine is ...:
+            logger.error('主控机未初始化')
+            raise RuntimeError('主控机未初始化')
         self.__master_machine.check_in(room_id)
 
     def check_out(self, room_id: str):
+        if self.__master_machine is ...:
+            logger.error('主控机未初始化')
+            raise RuntimeError('主控机未初始化')
         self.__master_machine.check_out(room_id)
 
 

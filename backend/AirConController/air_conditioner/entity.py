@@ -73,8 +73,8 @@ class MasterMachine:
             self.__room_list.append(Room(_, self.default_target_temp, self.default_speed))
         logger.info('设置主控机参数为: mode=' + self.__mode + ' temp_low_limit=' + str(self.__temp_low_limit) +
                     ' temp_high_limit=' + str(self.__temp_high_limit) + ' default_target_temp=' +
-                    str(self.__default_target_temp) + 'default_speed=' + str(self.__default_speed) +
-                    'fee_rate=' + str(self.__fee_rate))
+                    str(self.__default_target_temp) + ' default_speed=' + str(self.__default_speed) +
+                    ' fee_rate=' + str(self.__fee_rate))
 
     @property
     def mode(self):
