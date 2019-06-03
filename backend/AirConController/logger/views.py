@@ -24,7 +24,7 @@ def query_report(request):
                        'on_off_times': content.times_of_on_off,
                        'service_time': content.duration,
                        'fee': content.fee,
-                       'dispatch_time': content.times_of_dispatch,
+                       'dispatch_times': content.times_of_dispatch,
                        'rdr_number': content.number_of_detail,
                        'change_temp_times': content.times_of_change_temp,
                        'change_speed_times': content.times_of_change_speed,

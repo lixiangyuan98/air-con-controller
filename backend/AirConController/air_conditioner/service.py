@@ -230,10 +230,10 @@ class AirConditionerServiceQueue:
             for service in self.queue.values():
                 service.update(mode)
                 if mode == master_machine_mode.COOL:
-                    if service.room.current_temp - service.room.target_temp < 0.01:
+                    if service.room.current_temp - service.room.target_temp < 0.001:
                         reach_temp_services.append(service)
                 else:
-                    if service.room.current_temp - service.room.target_temp > 0.01:
+                    if service.room.current_temp - service.room.target_temp > 0.001:
                         reach_temp_services.append(service)
         return reach_temp_services
 
@@ -540,8 +540,8 @@ class PowerService:
             # 按照先前温度和风速创建服务
             target_temp, speed = room.target_temp, room.current_speed
         else:
-            logger.error('房间已开机')
-            raise RuntimeError('房间已开机')
+            logger.error('房间已开机或未入住')
+            raise RuntimeError('房间已开机或入住')
         room.power_on(current_temp)
         DBFacade.exec(Log.objects.create, room_id=room_id, operation=operations.POWER_ON,
                       op_time=datetime.datetime.now())
