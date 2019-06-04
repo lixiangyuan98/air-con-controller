@@ -1,12 +1,11 @@
 ## Environment
 
 * node.js >= 10.15
+* vue 3.0
 
 ## Requirement
 
-`npm install -g @vue/cli`
-
-`npm install --save socket.io`
+`npm install`
 
 ## Structure
 
@@ -22,3 +21,6 @@
 └── README.md
 ```
 
+## Run
+
+`npm run serve`
