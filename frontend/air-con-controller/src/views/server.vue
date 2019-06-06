@@ -50,6 +50,34 @@
       <button class="serverbtn" v-on:click="check" v-if="!checkout"><i class="fa fa-check"></i></button>
       <button class="serverbtn" v-on:click="start_up" v-if="checkout"><i class="fa fa-play"></i></button>
       <button class="serverbtn" v-on:click="changerole"><i class="fa fa-times-rectangle"></i></button>
+      <button class="serverbtn" v-on:click="check_room_state"><i class="fa fa-calculator"></i></button>
+    </div>
+    <div v-if="view_room">
+      <table>
+        <tr>
+          <th>房间号</th>
+          <th>当前温度</th>
+          <th>当前风速</th>
+          <th>模式</th>
+          <th>费用</th>
+          <th>费率</th>
+          <th>房间状态</th>
+          <th>工作时间</th>
+          <th>目标温度</th>
+        </tr>
+        <tr v-for="roomstate in roomstates" :key="roomstate.room_id">
+          <td v-text="roomstate.room_id"></td>
+          <td v-text="roomstate.current_temper"></td>
+          <td v-text="roomstate.speed"></td>
+          <td v-text="roomstate.mode"></td>
+          <td v-text="roomstate.fee"></td>
+          <td v-text="roomstate.fee_rate"></td>
+          <td v-text="roomstate.status"></td>
+          <td v-text="roomstate.service_time"></td>
+          <td v-text="roomstate.target_temper"></td>
+        </tr>
+      </table>
+      <button class="serverbtn" v-on:click="stop_room_state"><i class="fa fa-times-rectangle"></i></button>
     </div>
   </div>
 </template>
@@ -118,87 +146,122 @@
 export default {
   data() {
     return {
-      highest_temper: '',
-      lowest_temper: '',
-      low_speed_fee: '',
-      middle_speed_fee: '',
-      high_speed_fee: '',
-      default_temper: '',
-      default_speed: '',
-      mode: '',
+      highest_temper: this.$store.state.highest_temper,
+      lowest_temper: this.$store.state.lowest_temper,
+      low_speed_fee: this.$store.state.low_speed_fee,
+      middle_speed_fee: this.$store.state.middle_speed_fee,
+      high_speed_fee: this.$store.state.high_speed_fee,
+      default_temper: this.$store.state.default_temper,
+      default_speed: this.$store.state.default_speed,
+      mode: this.$store.state.mode,
       power_turn: 'ON',
       checkout: false,
       startup: false,
       poweron: false,
       roomstates:[],
+      view_room: false,
+      timer2:'',
+    }
+  },
+  created:function () {
+    if (this.$store.state.power_state==true){
+      this.power_turn = 'OFF';
+      this.checkout = true;
+      this.startup = true;
+      this.poweron = true;
     }
   },
   methods: {
     power_on: function() {
       //1.1主机开机
       if (this.$store.state.power_state==false){
-        this.$axios({
+        var this_axios = this;
+        this_axios.$axios({
           method:'get',
-          url:'/main_machine/power_on',
+          url:this.$store.state.website+'/main_machine/power_on',
         }).then(function(response){
-          if(response.message == 'OK'){
-            this.poweron = true;
-            this.power_turn='OFF';
-            this.$store.state.power_state=true;
+          if(response.data.message == 'OK'){
+            this_axios.poweron = true;
+            this_axios.power_turn='OFF';
+            this_axios.$store.state.power_state=true;
           }
-          else alert(response.message);
+          else window.console.log(response.data.message);
         }).catch(function(error){
           alert(error);
         })
       }
       //1.5关机
       else if (this.$store.state.power_state==true){
-        this.$axios({
+        this_axios = this;
+        this_axios.$axios({
           method:'get',
-          url:'/main_machine/close',
+          url:this.$store.state.website+'/main_machine/close',
         }).then(function(response){
-          if(response.message == 'OK'){
-            this.poweron = false;
-            this.power_turn='ON';
-            this.$store.state.power_state=false;
+          if(response.data.message == 'OK'){
+            this_axios.poweron = false;
+            this_axios.power_turn='ON';
+            this_axios.checkout = false;
+            this_axios.startup = false;
+            this_axios.roomstates = [];
+            this_axios.$store.state.highest_temper = '';
+            this_axios.$store.state.lowest_temper = '';
+            this_axios.$store.state.low_speed_fee = '';
+            this_axios.$store.state.middle_speed_fee = '';
+            this_axios.$store.state.high_speed_fee = '';
+            this_axios.$store.state.default_temper = '';
+            this_axios.$store.state.default_speed = '';
+            this_axios.$store.state.mode = '';
+            this_axios.$store.state.power_state=false;
           }
-          else alert(response.message);
+          else alert(response.data.message);
         }).catch(function(error){
           alert(error);
         })
+        window.console.log(this.$store.state);
       }
     },
     check: function() {
       //1.2参数初始化
       if ((this.highest_temper > this.lowest_temper) && (this.high_speed_fee > this.middle_speed_fee) &&
       (this.middle_speed_fee > this.low_speed_fee)){
-        this.$axios({
+        var this_axios = this;
+        this_axios.$axios({
           method:'get',
-          url:'/main_machine/init_param?highest_temper='+this.highest_temper+
-          '&lowest_temper='+this.lowest_temper+'&low_speed_fee='+this.low_speed_fee+
-          '&middle_speed_fee='+this.middle_speed_fee+'&high_speed_fee='+this.high_speed_fee+
-          '&default_temper='+this.default_temper+'&default_speed='+this.default_speed+
-          '&mode='+this.mode,
+          url:this.$store.state.website+'/main_machine/init_param?highest_temper='+this_axios.highest_temper+
+          '&lowest_temper='+this_axios.lowest_temper+'&low_speed_fee='+this_axios.low_speed_fee+
+          '&middle_speed_fee='+this_axios.middle_speed_fee+'&high_speed_fee='+this_axios.high_speed_fee+
+          '&default_temper='+this_axios.default_temper+'&default_speed='+this_axios.default_speed+
+          '&mode='+this_axios.mode,
         }).then(function(response){
-          if(response.message == 'OK'){
-            this.checkout = true;
+          if(response.data.message == 'OK'){
+            this_axios.checkout = true;
+            this_axios.$store.state.highest_temper = this_axios.highest_temper;
+            this_axios.$store.state.lowest_temper = this_axios.lowest_temper;
+            this_axios.$store.state.low_speed_fee = this_axios.low_speed_fee;
+            this_axios.$store.state.middle_speed_fee = this_axios.middle_speed_fee;
+            this_axios.$store.state.high_speed_fee = this_axios.high_speed_fee;
+            this_axios.$store.state.default_temper = this_axios.default_temper;
+            this_axios.$store.state.default_speed = this_axios.default_speed;
+            this_axios.$store.state.mode = this_axios.mode;
           }
-          else alert(response.message);
+          else alert(response.data.message);
         }).catch(function(error){
           alert(error);
         })
       }
+      window.console.log(this.$store.state);
     },
     start_up: function() {
       //1.3开始执行
-      this.$axios({
+      var this_axios = this;
+      this_axios.$axios({
         method:'get',
-        url:'/main_machine/start_up',
+        url:this.$store.state.website+'/main_machine/start_up',
       }).then(function(response){
-        if(response.message == 'OK'){
-          this.startup = true;
+        if(response.data.message == 'OK'){
+          this_axios.startup = true;
         }
-        else alert(response.message);
+        else window.console.log(response.data.message);
       }).catch(function(error){
         alert(error);
       })
@@ -208,36 +271,31 @@ export default {
     },
     checking: function() {
       //1.4监视空调
-      this.$axios({
+      var this_axios = this;
+      this_axios.$axios({
         method:'get',
-        url:'/main_machine/check_room_state',
+        url:this.$store.state.website+'/main_machine/check_room_state',
       }).then(function(response){
-        if(response.message == 'OK'){
-          this.roomstates = response.result;
+        if(response.data.message == 'OK'){
+          this_axios.roomstates = response.data.result;
         }
-        else alert(response.message);
+        else alert(response.data.message);
       }).catch(function(error){
         alert(error);
       })
     },
-  },
-  watch: {
-    //1.4监视空调
-    check_room: function () {
+    check_room_state: function() {
+        this.view_room=true;
+        this.timer2 = setInterval(this.checking, 1200);//3s
+      //1.4监视空调
       // 当开始运行startup的时候,保持3秒轮询
-      if (this.startup == true) {
-        var timer = setInterval(() => {
-          setTimeout(() => {
-            this.checking(); //调用接口的方法
-          }, 0)
-        }, 3000);//3s
-      }
-      // 当页面关闭的时候,结束轮询,否则就会一直发请求,
-      //使用$once(eventName, eventHandler)一次性监听事件
-      this.$once('hook:boforeDestory', () => {
-        clearInterval(timer);
-      })
-    }
-  }
+    },
+    stop_room_state: function() {
+        this.view_room=false;
+        clearInterval(this.timer2);
+      //1.4监视空调
+      // 当开始运行startup的时候,保持3秒轮询
+    },
+  },
 }
 </script>

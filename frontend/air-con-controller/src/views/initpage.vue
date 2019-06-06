@@ -3,6 +3,13 @@
 //----------------------------------------------------------------------------//
 <template>
   <div id="initpages">
+    <div class="initpage"  v-if="!($store.state.set_web)">
+      <p>服务器地址</p>
+      <input class="serverinput" v-model="$store.state.website">
+      <!--<p>房间初始温度</p>
+      <input class="serverinput" v-model="$store.state.temper">-->
+      <button v-on:click="webset">确定</button>
+    </div>
     <div class="initpage" v-show="page_1">
       <button class="initcontain initcontain_2" v-on:click="guest">
         <div class="initcontainer">
@@ -103,7 +110,7 @@ export default {
         {num: 2, id:"310c"},
         {num: 3, id:"311c"},
         {num: 4, id:"312c"},
-        {num: 5, id:"313c"}
+        {num: 5, id:"f3"}
       ],
       workers:[
         {num: 1, name:"前台"},
@@ -114,6 +121,9 @@ export default {
     }
   },
   methods: {
+    webset: function(){
+      this.$store.state.set_web=true;
+    },
     guest: function(){
       this.page_1 = false;
       this.page_2 = true;
@@ -125,19 +135,19 @@ export default {
       this.page_3 = true;
     },
     to_room: function(id){
-      this.$router.push({ path: '/room', query: { room_id: id }});
       //2.1 入住
-//      this.$axios({
-//        method:'get',
-//        url:'/slave/check_in?room_id='+id,
-//      }).then(function(response){
-//        if(response.message == 'OK'){
-//          this.$router.push({ path: '/room', query: { room_id: id }});
-//        }
-//        else alert(response.message);
-//      }).catch(function(error){
-//        alert(error);
-//      })
+      var this_axios = this;
+      this_axios.$axios({
+        method:'get',
+        url:this.$store.state.website+'/slave/check_in?room_id='+id,
+      }).then(function(response){
+        if(response.data.message == 'OK'){
+          this_axios.$router.push({ path: '/room', query: { room_id: id }});
+        }
+        else alert(response.data.message);
+      }).catch(function(error){
+        alert(error);
+      })
 
     },
     to_work: function(num){

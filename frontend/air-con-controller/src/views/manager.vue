@@ -31,14 +31,14 @@
           <th>改变风速次数</th>
         </tr>
         <tr>
-          <td>{{ room_id }}</td>
-          <td>on_off_times</td>
-          <td>service_time</td>
-          <td>fee</td>
-          <td>dispatch_times</td>
-          <td>rdr_number</td>
-          <td>change_temp_times</td>
-          <td>change_speed_times</td>
+          <td>{{ report.room_id }}</td>
+          <td>{{ report.on_off_times }}</td>
+          <td>{{ report.service_time }}</td>
+          <td>{{ report.fee }}</td>
+          <td>{{ report.dispatch_times }}</td>
+          <td>{{ report.rdr_number }}</td>
+          <td>{{ report.change_temp_times }}</td>
+          <td>{{ report.change_speed_times }}</td>
         </tr>
       </table>
     </div>
@@ -167,33 +167,39 @@ export default {
     },
     get_report: function(){
       //3.1 查询报表
-      this.$axios({
+      var this_axios=this;
+      this_axios.$axios({
         method:'get',
-        url:'/logger/query_report?qtype='+this.qtype+'&room_id='+this.room_id+
-        '&date='+this.date.year+'-'+this.date.month+'-'+this.date.day,
+        url:this.$store.state.website+'/logger/query_report?qtype='+this_axios.qtype+'&room_id='+this_axios.room_id+
+        '&date='+this_axios.date.year+'-'+this_axios.date.month+'-'+this_axios.date.day,
       }).then(function(response){
-        if(response.message == 'OK'){
-          this.report = response.result;
-          this.reporttable = true;
+        if(response.data.message == 'OK'){
+          this_axios.report = response.data.result;
+          this_axios.reporttable = true;
         }
-        else alert(response.message);
+        else alert(response.data.message);
       }).catch(function(error){
         alert(error);
       })
     },
     print_report: function(){
       //3.2 打印报表
-      this.$axios({
-        method:'get',
-        url:'/logger/print_report?qtype='+this.qtype+'&room_id='+this.room_id+
-        '&date='+this.date.year+'-'+this.date.month+'-'+this.date.day,
-      }).then(function(response){
-        if(response.message == 'OK'){
-          alert("打印报表");
-        }
-        else alert(response.message);
-      }).catch(function(error){
-        alert(error);
+      var this_axios = this;
+      this_axios.$axios({
+        url: this.$store.state.website+'/logger/print_report?qtype='+this_axios.qtype+'&room_id='+this_axios.room_id+
+        '&date='+this_axios.date.year+'-'+this_axios.date.month+'-'+this_axios.date.day, // 接口名字
+        method: 'get',
+        responseType: "blob"
+      }).then(function(response) {
+        const blob = new Blob([response.data])
+        const aEle = document.createElement('a'); // 创建a标签
+        const href = window.URL.createObjectURL(blob); // 创建下载的链接
+        aEle.href = href;
+        aEle.download = this_axios.room_id+'报表'+'.csv'; // 下载后文件名
+        document.body.appendChild(aEle);
+        aEle.click(); // 点击下载
+        document.body.removeChild(aEle); // 下载完成移除元素
+        window.URL.revokeObjectURL(href) // 释放掉blob对象
       })
     },
   }
